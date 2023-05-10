@@ -1,8 +1,9 @@
 name: "Auto Build and Release Docker Images for New Repositories"
 
 on:
-  repository:
-    types: [created]
+  push:
+    branches:
+      - main
 
 env:
   DOCKER_REGISTRY: nextlinux
