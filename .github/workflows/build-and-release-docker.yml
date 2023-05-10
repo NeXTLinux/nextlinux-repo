@@ -1,4 +1,4 @@
-name: Auto Build and Release Docker Images for New Repositories
+name: "Auto Build and Release Docker Images for New Repositories"
 
 on:
   repository:
