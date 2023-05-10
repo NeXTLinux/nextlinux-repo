@@ -1,0 +1,13 @@
+FROM alpine
+
+ARG DOCKER_IMAGE_NAME
+ARG DOCKER_IMAGE_DESCRIPTION
+
+LABEL name=$DOCKER_IMAGE_NAME \
+      description=$DOCKER_IMAGE_DESCRIPTION
+
+# Add the contents of your application to the image
+COPY . /app
+
+# Start the application
+CMD ["./app/start.sh"]
