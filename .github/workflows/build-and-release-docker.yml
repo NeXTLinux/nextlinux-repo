@@ -6,7 +6,7 @@ on:
       - main
 
 env:
-  DOCKER_REGISTRY: nextlinux
+  DOCKER_REGISTRY: next-linux.systems
 
 jobs:
   build-and-release:
