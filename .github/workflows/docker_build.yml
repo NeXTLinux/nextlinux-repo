@@ -1,0 +1,41 @@
+name: Auto Build and Release Docker Images for New Repositories
+
+on:
+  repository:
+    types: [created]
+
+env:
+  DOCKER_REGISTRY: nextlinux
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Login to Docker registry
+        run: echo ${{ secrets.DOCKER_REGISTRY_PASSWORD }} | docker login -u ${{ secrets.DOCKER_REGISTRY_USERNAME }} --password-stdin $DOCKER_REGISTRY
+      - name: Detect new repositories
+        id: repo_list
+        run: |
+          echo "Getting list of repositories"
+          repo_list=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/orgs/nextlinux/repos | jq -r '.[].name')
+          echo "::set-output name=repo_list::$repo_list"
+      - name: Build and push Docker images
+        run: |
+          for repo in ${{ steps.repo_list.outputs.repo_list }}; do
+            # Use repository name as component name and version
+            component_name=$repo
+            component_version=$repo
+            echo "Building Docker image for $component_name:$component_version"
+            
+            # Get the contents of the README.md file from the new repository
+            readme_contents=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/nextlinux/$repo/contents/README.md | jq -r '.content')
+            
+            # Base64 decode the contents of the README.md file and pass it as a build argument to the Dockerfile
+            docker_build_args="--build-arg DOCKER_IMAGE_NAME=$component_name --build-arg DOCKER_IMAGE_DESCRIPTION=$(echo $readme_contents | base64 -d)"
+            
+            # Build and push the Docker image
+            docker build -t $DOCKER_REGISTRY/$component_name:$component_version $docker_build_args .
+            docker push $DOCKER_REGISTRY/$component_name:$component_version
+          done
